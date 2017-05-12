@@ -25,10 +25,11 @@ limitations under the License.
 package featureflag
 
 import (
-	"github.com/golang/glog"
 	"os"
 	"strings"
 	"sync"
+
+	"github.com/golang/glog"
 )
 
 func Bool(b bool) *bool {
@@ -48,6 +49,8 @@ var VPCSkipEnableDNSSupport = New("VPCSkipEnableDNSSupport", Bool(false))
 var SkipTerraformFormat = New("SkipTerraformFormat", Bool(false))
 
 var VSphereCloudProvider = New("VSphereCloudProvider", Bool(false))
+
+var LibvirtCloudProvider = New("LibvirtCloudProvider", Bool(true))
 
 var flags = make(map[string]*FeatureFlag)
 var flagsMutex sync.Mutex

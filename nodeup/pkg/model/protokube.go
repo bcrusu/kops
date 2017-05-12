@@ -19,6 +19,9 @@ package model
 import (
 	"bytes"
 	"fmt"
+	"os"
+	"strings"
+
 	"github.com/blang/semver"
 	"github.com/golang/glog"
 	"k8s.io/kops"
@@ -28,8 +31,6 @@ import (
 	"k8s.io/kops/pkg/systemd"
 	"k8s.io/kops/upup/pkg/fi"
 	"k8s.io/kops/upup/pkg/fi/nodeup/nodetasks"
-	"os"
-	"strings"
 )
 
 // ProtokubeBuilder configures protokube
@@ -228,6 +229,9 @@ func (t *ProtokubeBuilder) ProtokubeFlags(k8sVersion semver.Version) *ProtokubeF
 				f.DNSProvider = fi.String("coredns")
 				f.ClusterId = fi.String(t.Cluster.ObjectMeta.Name)
 				f.DNSServer = fi.String(*t.Cluster.Spec.CloudConfig.VSphereCoreDNSServer)
+			case fi.CloudProviderLibvirt:
+				//TODO(bcrusu):
+				panic("not implemented")
 			default:
 				glog.Warningf("Unknown cloudprovider %q; won't set DNS provider", t.Cluster.Spec.CloudProvider)
 			}

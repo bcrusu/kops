@@ -108,6 +108,15 @@ type CreateClusterOptions struct {
 	// We need VSphereDatastore to support Kubernetes vSphere Cloud Provider (v1.5.3)
 	// We can remove this once we support higher versions.
 	VSphereDatastore string
+
+	// libvirt options
+	LibvirtURI              string
+	LibvirtStoragePool      string
+	LibvirtVolFormat        string
+	LibvirtVolCapacity      string
+	LibvirtVolAllocation    string
+	LibvirtBackingVolPath   string
+	LibvirtBackingVolFormat string
 }
 
 func (o *CreateClusterOptions) InitDefaults() {
@@ -214,7 +223,7 @@ func NewCmdCreateCluster(f *util.Factory, out io.Writer) *cobra.Command {
 	cmd.Flags().StringVar(&options.Target, "target", options.Target, "Target - direct, terraform, cloudformation")
 	cmd.Flags().StringVar(&options.Models, "model", options.Models, "Models to apply (separate multiple models with commas)")
 
-	cmd.Flags().StringVar(&options.Cloud, "cloud", options.Cloud, "Cloud provider to use - gce, aws, vsphere")
+	cmd.Flags().StringVar(&options.Cloud, "cloud", options.Cloud, "Cloud provider to use - gce, aws, vsphere, libvirt")
 
 	cmd.Flags().StringSliceVar(&options.Zones, "zones", options.Zones, "Zones in which to run the cluster")
 	cmd.Flags().StringSliceVar(&options.MasterZones, "master-zones", options.MasterZones, "Zones in which to run masters (must be an odd number)")
@@ -278,6 +287,18 @@ func NewCmdCreateCluster(f *util.Factory, out io.Writer) *cobra.Command {
 		cmd.Flags().StringVar(&options.VSphereCoreDNSServer, "vsphere-coredns-server", options.VSphereCoreDNSServer, "vsphere-coredns-server is required for vSphere.")
 		cmd.Flags().StringVar(&options.VSphereDatastore, "vsphere-datastore", options.VSphereDatastore, "vsphere-datastore is required for vSphere.  Set a valid datastore in which to store dynamic provision volumes.")
 	}
+
+	if featureflag.LibvirtCloudProvider.Enabled() {
+		// libvirt flags
+		cmd.Flags().StringVar(&options.LibvirtURI, "libvirt-uri", options.LibvirtURI, "libvirt connection URI.")
+		cmd.Flags().StringVar(&options.LibvirtStoragePool, "libvirt-pool", options.LibvirtStoragePool, "libvirt storage pool name/UUID.")
+		cmd.Flags().StringVar(&options.LibvirtVolFormat, "libvirt-vol-format", options.LibvirtVolFormat, "libvirt storage volume format.")
+		cmd.Flags().StringVar(&options.LibvirtVolCapacity, "libvirt-vol-capacity", options.LibvirtVolCapacity, "libvirt storage volume capacity.")
+		cmd.Flags().StringVar(&options.LibvirtVolAllocation, "libvirt-vol-allocation", options.LibvirtVolAllocation, "libvirt storage volume allocation.")
+		cmd.Flags().StringVar(&options.LibvirtBackingVolPath, "libvirt-backing-vol-path", options.LibvirtBackingVolPath, "libvirt backing storage volume path.")
+		cmd.Flags().StringVar(&options.LibvirtBackingVolFormat, "libvirt-backing-vol-format", options.LibvirtBackingVolFormat, "libvirt backing storage volume format.")
+	}
+
 	return cmd
 }
 
@@ -628,6 +649,10 @@ func RunCreateCluster(f *util.Factory, out io.Writer, c *CreateClusterOptions) e
 				return fmt.Errorf("vsphere-datastore is required for vSphere. Set a valid datastore in which to store dynamic provision volumes.")
 			}
 			cluster.Spec.CloudConfig.VSphereDatastore = fi.String(c.VSphereDatastore)
+		}
+
+		if c.Cloud == "libvirt" {
+			//TODO(bcrusu)
 		}
 	}
 

@@ -30,6 +30,10 @@ package cloudup
 import (
 	"encoding/base64"
 	"fmt"
+	"os"
+	"strings"
+	"text/template"
+
 	"k8s.io/apimachinery/pkg/util/sets"
 	api "k8s.io/kops/pkg/apis/kops"
 	"k8s.io/kops/pkg/dns"
@@ -37,9 +41,6 @@ import (
 	"k8s.io/kops/pkg/model/components"
 	"k8s.io/kops/upup/pkg/fi"
 	"k8s.io/kops/upup/pkg/fi/cloudup/gce"
-	"os"
-	"strings"
-	"text/template"
 )
 
 type TemplateFunctions struct {
@@ -143,7 +144,9 @@ func (tf *TemplateFunctions) DnsControllerArgv() ([]string, error) {
 	case fi.CloudProviderVSphere:
 		argv = append(argv, "--dns=coredns")
 		argv = append(argv, "--dns-server="+*tf.cluster.Spec.CloudConfig.VSphereCoreDNSServer)
-
+	case fi.CloudProviderLibvirt:
+		//TODO(bcrusu):
+		panic("not implemented")
 	default:
 		return nil, fmt.Errorf("unhandled cloudprovider %q", tf.cluster.Spec.CloudProvider)
 	}
