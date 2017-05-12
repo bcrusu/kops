@@ -312,6 +312,14 @@ func autoConvert_v1alpha1_CloudConfiguration_To_kops_CloudConfiguration(in *Clou
 	out.VSphereDatastore = in.VSphereDatastore
 	out.VSphereResourcePool = in.VSphereResourcePool
 	out.VSphereCoreDNSServer = in.VSphereCoreDNSServer
+	out.LibvirtURI = in.LibvirtURI
+	out.LibvirtStoragePool = in.LibvirtStoragePool
+	out.LibvirtVolFormat = in.LibvirtVolFormat
+	out.LibvirtVolCapacity = in.LibvirtVolCapacity
+	out.LibvirtVolAllocation = in.LibvirtVolAllocation
+	out.LibvirtBackingVolPath = in.LibvirtBackingVolPath
+	out.LibvirtBackingVolFormat = in.LibvirtBackingVolFormat
+	out.LibvirtCoreDNSServer = in.LibvirtCoreDNSServer
 	return nil
 }
 
@@ -331,6 +339,14 @@ func autoConvert_kops_CloudConfiguration_To_v1alpha1_CloudConfiguration(in *kops
 	out.VSphereResourcePool = in.VSphereResourcePool
 	out.VSphereDatastore = in.VSphereDatastore
 	out.VSphereCoreDNSServer = in.VSphereCoreDNSServer
+	out.LibvirtURI = in.LibvirtURI
+	out.LibvirtStoragePool = in.LibvirtStoragePool
+	out.LibvirtVolFormat = in.LibvirtVolFormat
+	out.LibvirtVolCapacity = in.LibvirtVolCapacity
+	out.LibvirtVolAllocation = in.LibvirtVolAllocation
+	out.LibvirtBackingVolPath = in.LibvirtBackingVolPath
+	out.LibvirtBackingVolFormat = in.LibvirtBackingVolFormat
+	out.LibvirtCoreDNSServer = in.LibvirtCoreDNSServer
 	return nil
 }
 
