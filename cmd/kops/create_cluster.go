@@ -117,6 +117,7 @@ type CreateClusterOptions struct {
 	LibvirtVolAllocation    string
 	LibvirtBackingVolPath   string
 	LibvirtBackingVolFormat string
+	LibvirtCoreDNSServer    string
 }
 
 func (o *CreateClusterOptions) InitDefaults() {
@@ -297,6 +298,7 @@ func NewCmdCreateCluster(f *util.Factory, out io.Writer) *cobra.Command {
 		cmd.Flags().StringVar(&options.LibvirtVolAllocation, "libvirt-vol-allocation", options.LibvirtVolAllocation, "libvirt storage volume allocation.")
 		cmd.Flags().StringVar(&options.LibvirtBackingVolPath, "libvirt-backing-vol-path", options.LibvirtBackingVolPath, "libvirt backing storage volume path.")
 		cmd.Flags().StringVar(&options.LibvirtBackingVolFormat, "libvirt-backing-vol-format", options.LibvirtBackingVolFormat, "libvirt backing storage volume format.")
+		cmd.Flags().StringVar(&options.LibvirtCoreDNSServer, "libvirt-coredns-server", options.LibvirtCoreDNSServer, "libvirt CoreDNS server address.")
 	}
 
 	return cmd
@@ -652,7 +654,49 @@ func RunCreateCluster(f *util.Factory, out io.Writer, c *CreateClusterOptions) e
 		}
 
 		if c.Cloud == "libvirt" {
-			//TODO(bcrusu)
+			if !featureflag.LibvirtCloudProvider.Enabled() {
+				return fmt.Errorf("Feature flag LibvirtCloudProvider is not set. Cloud libvirt will not be supported")
+			}
+
+			if cluster.Spec.CloudConfig == nil {
+				cluster.Spec.CloudConfig = &api.CloudConfiguration{}
+			}
+
+			if c.LibvirtURI == "" {
+				return fmt.Errorf("libvirt-uri is required for libvirt")
+			}
+			cluster.Spec.CloudConfig.LibvirtURI = fi.String(c.LibvirtURI)
+
+			if c.LibvirtStoragePool == "" {
+				return fmt.Errorf("libvirt-pool is required for libvirt")
+			}
+			cluster.Spec.CloudConfig.LibvirtStoragePool = fi.String(c.LibvirtStoragePool)
+
+			if c.LibvirtVolFormat == "" {
+				return fmt.Errorf("libvirt-vol-format is required for libvirt")
+			}
+			cluster.Spec.CloudConfig.LibvirtVolFormat = fi.String(c.LibvirtVolFormat)
+
+			if c.LibvirtVolCapacity == "" {
+				return fmt.Errorf("libvirt-vol-capacity is required for libvirt")
+			}
+			cluster.Spec.CloudConfig.LibvirtVolCapacity = fi.String(c.LibvirtVolCapacity)
+			cluster.Spec.CloudConfig.LibvirtVolAllocation = fi.String(c.LibvirtVolAllocation) // volume allocation size is optional
+
+			if c.LibvirtBackingVolPath == "" {
+				return fmt.Errorf("libvirt-backing-vol-path is required for libvirt")
+			}
+			cluster.Spec.CloudConfig.LibvirtBackingVolPath = fi.String(c.LibvirtBackingVolPath)
+
+			if c.LibvirtBackingVolFormat == "" {
+				return fmt.Errorf("libvirt-backing-vol-format is required for libvirt")
+			}
+			cluster.Spec.CloudConfig.LibvirtBackingVolFormat = fi.String(c.LibvirtBackingVolFormat)
+
+			if c.LibvirtCoreDNSServer == "" {
+				return fmt.Errorf("libvirt-coredns-server is required for libvirt.")
+			}
+			cluster.Spec.CloudConfig.LibvirtCoreDNSServer = fi.String(c.LibvirtCoreDNSServer)
 		}
 	}
 

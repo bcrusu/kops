@@ -230,8 +230,8 @@ func (t *ProtokubeBuilder) ProtokubeFlags(k8sVersion semver.Version) *ProtokubeF
 				f.ClusterId = fi.String(t.Cluster.ObjectMeta.Name)
 				f.DNSServer = fi.String(*t.Cluster.Spec.CloudConfig.VSphereCoreDNSServer)
 			case fi.CloudProviderLibvirt:
-				//TODO(bcrusu):
-				panic("not implemented")
+				f.DNSProvider = fi.String("coredns")
+				f.DNSServer = fi.String(*t.Cluster.Spec.CloudConfig.LibvirtCoreDNSServer)
 			default:
 				glog.Warningf("Unknown cloudprovider %q; won't set DNS provider", t.Cluster.Spec.CloudProvider)
 			}

@@ -18,6 +18,10 @@ package cloudup
 
 import (
 	"fmt"
+	"net"
+	"os"
+	"strings"
+
 	"github.com/golang/glog"
 	"k8s.io/kops/dns-controller/pkg/dns"
 	api "k8s.io/kops/pkg/apis/kops"
@@ -27,9 +31,6 @@ import (
 	"k8s.io/kops/upup/pkg/fi"
 	"k8s.io/kubernetes/federation/pkg/dnsprovider"
 	"k8s.io/kubernetes/federation/pkg/dnsprovider/rrstype"
-	"net"
-	"os"
-	"strings"
 )
 
 const (
@@ -162,9 +163,10 @@ func precreateDNS(cluster *api.Cluster, cloud fi.Cloud) error {
 	}
 
 	recordsMap := make(map[string]dnsprovider.ResourceRecordSet)
-	// vSphere provider uses CoreDNS, which doesn't have rrs.List() function supported.
+	// vSphere & libvirt providers use CoreDNS, which doesn't have rrs.List() function supported.
 	// Thus we use rrs.Get() to check every dnsHostname instead
-	if cloud.ProviderID() != fi.CloudProviderVSphere {
+	if cloud.ProviderID() != fi.CloudProviderVSphere &&
+		cloud.ProviderID() != fi.CloudProviderLibvirt {
 		// TODO: We should change the filter to be a suffix match instead
 		//records, err := rrs.List("", "")
 		records, err := rrs.List()
@@ -186,7 +188,8 @@ func precreateDNS(cluster *api.Cluster, cloud fi.Cloud) error {
 	for _, dnsHostname := range dnsHostnames {
 		dnsHostname = dns.EnsureDotSuffix(dnsHostname)
 		found := false
-		if cloud.ProviderID() != fi.CloudProviderVSphere {
+		if cloud.ProviderID() != fi.CloudProviderVSphere &&
+			cloud.ProviderID() != fi.CloudProviderLibvirt {
 			dnsRecord := recordsMap["A::"+dnsHostname]
 			if dnsRecord != nil {
 				rrdatas := dnsRecord.Rrdatas()

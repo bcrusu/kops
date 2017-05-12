@@ -145,8 +145,8 @@ func (tf *TemplateFunctions) DnsControllerArgv() ([]string, error) {
 		argv = append(argv, "--dns=coredns")
 		argv = append(argv, "--dns-server="+*tf.cluster.Spec.CloudConfig.VSphereCoreDNSServer)
 	case fi.CloudProviderLibvirt:
-		//TODO(bcrusu):
-		panic("not implemented")
+		argv = append(argv, "--dns=coredns")
+		argv = append(argv, "--dns-server="+*tf.cluster.Spec.CloudConfig.LibvirtCoreDNSServer)
 	default:
 		return nil, fmt.Errorf("unhandled cloudprovider %q", tf.cluster.Spec.CloudProvider)
 	}
