@@ -160,6 +160,8 @@ func defaultNodeMachineType(cluster *api.Cluster) string {
 		return defaultNodeMachineTypeGCE
 	case fi.CloudProviderVSphere:
 		return defaultNodeMachineTypeVSphere
+	case fi.CloudProviderLibvirt:
+		return "" // if the user did not specify the machine type, will use the embedded resource domain.xml
 	default:
 		glog.V(2).Infof("Cannot set default MachineType for CloudProvider=%q", cluster.Spec.CloudProvider)
 		return ""
@@ -214,6 +216,8 @@ func defaultMasterMachineType(cluster *api.Cluster) string {
 		return defaultMasterMachineTypeGCE
 	case fi.CloudProviderVSphere:
 		return defaultMasterMachineTypeVSphere
+	case fi.CloudProviderLibvirt:
+		return "" // if the user did not specify the machine type, will use the embedded resource domain.xml
 	default:
 		glog.V(2).Infof("Cannot set default MachineType for CloudProvider=%q", cluster.Spec.CloudProvider)
 		return ""
@@ -229,6 +233,8 @@ func defaultBastionMachineType(cluster *api.Cluster) string {
 		return defaultBastionMachineTypeGCE
 	case fi.CloudProviderVSphere:
 		return defaultBastionMachineTypeVSphere
+	case fi.CloudProviderLibvirt:
+		return "" // if the user did not specify the machine type, will use the embedded resource domain.xml
 	default:
 		glog.V(2).Infof("Cannot set default MachineType for CloudProvider=%q", cluster.Spec.CloudProvider)
 		return ""
@@ -254,6 +260,8 @@ func defaultImage(cluster *api.Cluster, channel *api.Channel) string {
 		}
 	} else if fi.CloudProviderID(cluster.Spec.CloudProvider) == fi.CloudProviderVSphere {
 		return defaultVSphereNodeImage
+	} else if fi.CloudProviderID(cluster.Spec.CloudProvider) == fi.CloudProviderLibvirt {
+		return ""
 	}
 	glog.Infof("Cannot set default Image for CloudProvider=%q", cluster.Spec.CloudProvider)
 	return ""

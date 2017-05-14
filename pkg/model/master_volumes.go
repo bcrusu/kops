@@ -18,20 +18,23 @@ package model
 
 import (
 	"fmt"
+	"sort"
+	"strings"
+
 	"k8s.io/kops/pkg/apis/kops"
 	"k8s.io/kops/upup/pkg/fi"
 	"k8s.io/kops/upup/pkg/fi/cloudup/awstasks"
 	"k8s.io/kops/upup/pkg/fi/cloudup/awsup"
 	"k8s.io/kops/upup/pkg/fi/cloudup/gce"
 	"k8s.io/kops/upup/pkg/fi/cloudup/gcetasks"
-	"sort"
-	"strings"
+	"k8s.io/kops/upup/pkg/fi/cloudup/libvirttasks"
 )
 
 const (
-	DefaultEtcdVolumeSize    = 20
-	DefaultAWSEtcdVolumeType = "gp2"
-	DefaultGCEEtcdVolumeType = "pd-ssd"
+	DefaultEtcdVolumeSize        = 20
+	DefaultAWSEtcdVolumeType     = "gp2"
+	DefaultGCEEtcdVolumeType     = "pd-ssd"
+	DefaultLibvirtEtcdVolumeType = "qcow"
 )
 
 // MasterVolumeBuilder builds master EBS volumes
@@ -90,6 +93,8 @@ func (b *MasterVolumeBuilder) Build(c *fi.ModelBuilderContext) error {
 				b.addGCEVolume(c, name, volumeSize, subnet, etcd, m, allMembers)
 			case fi.CloudProviderVSphere:
 				b.addVSphereVolume(c, name, volumeSize, subnet, etcd, m, allMembers)
+			case fi.CloudProviderLibvirt:
+				b.addLibvirtVolume(c, name, volumeSize, subnet, etcd, m, allMembers)
 			default:
 				return fmt.Errorf("unknown cloudprovider %q", b.Cluster.Spec.CloudProvider)
 			}
@@ -170,4 +175,21 @@ func (b *MasterVolumeBuilder) addGCEVolume(c *fi.ModelBuilderContext, name strin
 
 func (b *MasterVolumeBuilder) addVSphereVolume(c *fi.ModelBuilderContext, name string, volumeSize int32, subnet *kops.ClusterSubnetSpec, etcd *kops.EtcdClusterSpec, m *kops.EtcdMemberSpec, allMembers []string) {
 	fmt.Print("addVSphereVolume to be implemented")
+}
+
+func (b *MasterVolumeBuilder) addLibvirtVolume(c *fi.ModelBuilderContext, name string, volumeSize int32, subnet *kops.ClusterSubnetSpec, etcd *kops.EtcdClusterSpec, m *kops.EtcdMemberSpec, allMembers []string) {
+	volumeType := fi.StringValue(m.VolumeType)
+	if volumeType == "" {
+		volumeType = DefaultLibvirtEtcdVolumeType
+	}
+
+	t := &libvirttasks.StorageVolume{
+		Pool:       b.Cluster.Spec.CloudConfig.LibvirtStoragePool,
+		Name:       s(name),
+		SizeGB:     fi.Int64(int64(volumeSize)),
+		VolumeType: s(volumeType),
+		Encrypted:  m.EncryptedVolume,
+	}
+
+	c.AddTask(t)
 }

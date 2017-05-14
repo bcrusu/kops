@@ -17,11 +17,12 @@ limitations under the License.
 package components
 
 import (
+	"strings"
+
 	"github.com/golang/glog"
 	"k8s.io/kops/pkg/apis/kops"
 	"k8s.io/kops/upup/pkg/fi"
 	"k8s.io/kops/upup/pkg/fi/loader"
-	"strings"
 )
 
 // KubeletOptionsBuilder adds options for kubelets
@@ -165,6 +166,10 @@ func (b *KubeletOptionsBuilder) BuildOptions(o interface{}) error {
 	if cloudProvider == fi.CloudProviderVSphere {
 		clusterSpec.Kubelet.CloudProvider = "vsphere"
 		clusterSpec.Kubelet.HairpinMode = "promiscuous-bridge"
+	}
+
+	if cloudProvider == fi.CloudProviderLibvirt {
+		clusterSpec.Kubelet.CloudProvider = ""
 	}
 
 	usesKubenet, err := UsesKubenet(clusterSpec)

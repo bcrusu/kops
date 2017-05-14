@@ -50,7 +50,7 @@ var SkipTerraformFormat = New("SkipTerraformFormat", Bool(false))
 
 var VSphereCloudProvider = New("VSphereCloudProvider", Bool(false))
 
-var LibvirtCloudProvider = New("LibvirtCloudProvider", Bool(true))
+var LibvirtCloudProvider = New("LibvirtCloudProvider", Bool(false))
 
 var flags = make(map[string]*FeatureFlag)
 var flagsMutex sync.Mutex

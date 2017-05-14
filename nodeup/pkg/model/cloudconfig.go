@@ -19,12 +19,13 @@ package model
 import (
 	"bufio"
 	"fmt"
+	"os"
+	"strings"
+
 	"k8s.io/kops/pkg/apis/kops"
 	"k8s.io/kops/pkg/apis/kops/util"
 	"k8s.io/kops/upup/pkg/fi"
 	"k8s.io/kops/upup/pkg/fi/nodeup/nodetasks"
-	"os"
-	"strings"
 )
 
 const CloudConfigFilePath = "/etc/kubernetes/cloud.config"
@@ -99,6 +100,10 @@ func (b *CloudConfigBuilder) Build(c *fi.ModelBuilderContext) error {
 		// We need this to support Kubernetes vSphere CloudProvider < v1.5.3
 		lines = append(lines, "[disk]")
 		lines = append(lines, "scsicontrollertype = pvscsi")
+	case string(fi.CloudProviderLibvirt):
+		{
+			//TODO(bcrusu):
+		}
 	}
 
 	config := "[global]\n" + strings.Join(lines, "\n") + "\n"

@@ -38,6 +38,7 @@ import (
 	"k8s.io/kops/pkg/model/awsmodel"
 	"k8s.io/kops/pkg/model/components"
 	"k8s.io/kops/pkg/model/gcemodel"
+	"k8s.io/kops/pkg/model/libvirtmodel"
 	"k8s.io/kops/pkg/model/vspheremodel"
 	"k8s.io/kops/upup/pkg/fi"
 	"k8s.io/kops/upup/pkg/fi/cloudup/awstasks"
@@ -45,6 +46,8 @@ import (
 	"k8s.io/kops/upup/pkg/fi/cloudup/cloudformation"
 	"k8s.io/kops/upup/pkg/fi/cloudup/gce"
 	"k8s.io/kops/upup/pkg/fi/cloudup/gcetasks"
+	"k8s.io/kops/upup/pkg/fi/cloudup/libvirt"
+	"k8s.io/kops/upup/pkg/fi/cloudup/libvirttasks"
 	"k8s.io/kops/upup/pkg/fi/cloudup/terraform"
 	"k8s.io/kops/upup/pkg/fi/cloudup/vsphere"
 	"k8s.io/kops/upup/pkg/fi/cloudup/vspheretasks"
@@ -62,6 +65,9 @@ var AlphaAllowGCE = featureflag.New("AlphaAllowGCE", featureflag.Bool(false))
 
 // AlphaAllowVsphere is a feature flag that gates vsphere support while it is alpha
 var AlphaAllowVsphere = featureflag.New("AlphaAllowVsphere", featureflag.Bool(false))
+
+// AlphaAllowLibvirt is a feature flag that gates libvirt support while it is alpha
+var AlphaAllowLibvirt = featureflag.New("AlphaAllowLibvirt", featureflag.Bool(false))
 
 var CloudupModels = []string{"config", "proto", "cloudup"}
 
@@ -385,7 +391,19 @@ func (c *ApplyClusterCmd) Run() error {
 				"instance": &vspheretasks.VirtualMachine{},
 			})
 		}
+	case fi.CloudProviderLibvirt:
+		{
+			if !AlphaAllowLibvirt.Enabled() {
+				return fmt.Errorf("Libvirt support is currently alpha, and is feature-gated.  export KOPS_FEATURE_FLAGS=AlphaAllowLibvirt")
+			}
 
+			region = "local"
+
+			l.AddTypes(map[string]interface{}{
+				"instance":      &libvirttasks.VirtualMachine{},
+				"storageVolume": &libvirttasks.StorageVolume{},
+			})
+		}
 	default:
 		return fmt.Errorf("unknown CloudProvider %q", cluster.Spec.CloudProvider)
 	}
@@ -468,6 +486,9 @@ func (c *ApplyClusterCmd) Run() error {
 					//&model.SSHKeyModelBuilder{KopsModelContext: modelContext},
 				)
 			case fi.CloudProviderVSphere:
+				l.Builders = append(l.Builders,
+					&model.PKIModelBuilder{KopsModelContext: modelContext})
+			case fi.CloudProviderLibvirt:
 				l.Builders = append(l.Builders,
 					&model.PKIModelBuilder{KopsModelContext: modelContext})
 
@@ -605,6 +626,15 @@ func (c *ApplyClusterCmd) Run() error {
 				BootstrapScript:     bootstrapScriptBuilder,
 			})
 		}
+	case fi.CloudProviderLibvirt:
+		{
+			l.Builders = append(l.Builders, &libvirtmodel.AutoscalingGroupModelBuilder{
+				LibvirtModelContext: &libvirtmodel.LibvirtModelContext{
+					KopsModelContext: modelContext,
+				},
+				BootstrapScript: bootstrapScriptBuilder,
+			})
+		}
 
 	default:
 		return fmt.Errorf("unknown cloudprovider %q", cluster.Spec.CloudProvider)
@@ -646,13 +676,15 @@ func (c *ApplyClusterCmd) Run() error {
 
 	switch c.TargetName {
 	case TargetDirect:
-		switch cluster.Spec.CloudProvider {
-		case "gce":
+		switch fi.CloudProviderID(cluster.Spec.CloudProvider) {
+		case fi.CloudProviderGCE:
 			target = gce.NewGCEAPITarget(cloud.(*gce.GCECloud))
-		case "aws":
+		case fi.CloudProviderAWS:
 			target = awsup.NewAWSAPITarget(cloud.(awsup.AWSCloud))
-		case "vsphere":
+		case fi.CloudProviderVSphere:
 			target = vsphere.NewVSphereAPITarget(cloud.(*vsphere.VSphereCloud))
+		case fi.CloudProviderLibvirt:
+			target = libvirt.NewLibvirtAPITarget(cloud.(*libvirt.LibvirtCloud))
 		default:
 			return fmt.Errorf("direct configuration not supported with CloudProvider:%q", cluster.Spec.CloudProvider)
 		}

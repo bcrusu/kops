@@ -107,6 +107,9 @@ func (b *KubeControllerManagerOptionsBuilder) BuildOptions(o interface{}) error 
 	case fi.CloudProviderVSphere:
 		kcm.CloudProvider = "vsphere"
 
+	case fi.CloudProviderLibvirt:
+		kcm.CloudProvider = "libvirt"
+
 	default:
 		return fmt.Errorf("unknown cloud provider %q", clusterSpec.CloudProvider)
 	}

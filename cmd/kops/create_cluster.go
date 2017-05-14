@@ -662,6 +662,8 @@ func RunCreateCluster(f *util.Factory, out io.Writer, c *CreateClusterOptions) e
 				cluster.Spec.CloudConfig = &api.CloudConfiguration{}
 			}
 
+			//TODO(bcrusu): validate image, target, machinetype, etc.
+
 			if c.LibvirtURI == "" {
 				return fmt.Errorf("libvirt-uri is required for libvirt")
 			}

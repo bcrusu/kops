@@ -19,14 +19,15 @@ package terraform
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/golang/glog"
-	hcl_parser "github.com/hashicorp/hcl/json/parser"
 	"io/ioutil"
-	"k8s.io/kops/upup/pkg/fi"
 	"os"
 	"path"
 	"strings"
 	"sync"
+
+	"github.com/golang/glog"
+	hcl_parser "github.com/hashicorp/hcl/json/parser"
+	"k8s.io/kops/upup/pkg/fi"
 )
 
 type TerraformTarget struct {
@@ -189,6 +190,8 @@ func (t *TerraformTarget) Finish(taskMap map[string]fi.Task) error {
 		providerVSphere := make(map[string]interface{})
 		providerVSphere["region"] = t.Region
 		providersByName["vsphere"] = providerVSphere
+	} else if t.Cloud.ProviderID() == fi.CloudProviderLibvirt {
+		return fmt.Errorf("terraform target not supported for libvirt")
 	}
 
 	outputVariables := make(map[string]interface{})

@@ -6,7 +6,7 @@ import (
 	"k8s.io/kops/upup/pkg/fi/cloudup/libvirt"
 )
 
-// VirtualMachine represents a VMware VM
+// VirtualMachine represents a libvirt VM
 //go:generate fitask -type=VirtualMachine
 type VirtualMachine struct {
 	Name           *string

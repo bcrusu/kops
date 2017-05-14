@@ -18,12 +18,13 @@ package resources
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/ec2"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/kops/upup/pkg/fi"
 	"k8s.io/kops/upup/pkg/fi/cloudup/awsup"
-	"strings"
 )
 
 // Todo
@@ -57,6 +58,8 @@ func (c *AwsCluster) ListResources() (map[string]*ResourceTracker, error) {
 		return c.listResourcesGCE()
 	case fi.CloudProviderVSphere:
 		return c.listResourcesVSphere()
+	case fi.CloudProviderLibvirt:
+		return c.listResourcesLibvirt()
 	default:
 		return nil, fmt.Errorf("Delete on clusters on %q not (yet) supported", c.Cloud.ProviderID())
 	}

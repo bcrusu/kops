@@ -18,14 +18,16 @@ package cloudup
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/golang/glog"
 	api "k8s.io/kops/pkg/apis/kops"
 	"k8s.io/kops/upup/pkg/fi"
 	"k8s.io/kops/upup/pkg/fi/cloudup/awsup"
 	"k8s.io/kops/upup/pkg/fi/cloudup/gce"
+	"k8s.io/kops/upup/pkg/fi/cloudup/libvirt"
 	"k8s.io/kops/upup/pkg/fi/cloudup/vsphere"
 	"k8s.io/kubernetes/federation/pkg/dnsprovider"
-	"strings"
 )
 
 func BuildCloud(cluster *api.Cluster) (fi.Cloud, error) {
@@ -34,8 +36,8 @@ func BuildCloud(cluster *api.Cluster) (fi.Cloud, error) {
 	region := ""
 	project := ""
 
-	switch cluster.Spec.CloudProvider {
-	case "gce":
+	switch fi.CloudProviderID(cluster.Spec.CloudProvider) {
+	case fi.CloudProviderGCE:
 		{
 			nodeZones := make(map[string]bool)
 			for _, subnet := range cluster.Spec.Subnets {
@@ -68,7 +70,7 @@ func BuildCloud(cluster *api.Cluster) (fi.Cloud, error) {
 			cloud = gceCloud
 		}
 
-	case "aws":
+	case fi.CloudProviderAWS:
 		{
 			region, err := awsup.FindRegion(cluster)
 			if err != nil {
@@ -97,7 +99,7 @@ func BuildCloud(cluster *api.Cluster) (fi.Cloud, error) {
 			}
 			cloud = awsCloud
 		}
-	case "vsphere":
+	case fi.CloudProviderVSphere:
 		{
 			vsphereCloud, err := vsphere.NewVSphereCloud(&cluster.Spec)
 			if err != nil {
@@ -105,6 +107,12 @@ func BuildCloud(cluster *api.Cluster) (fi.Cloud, error) {
 			}
 			cloud = vsphereCloud
 		}
+	case fi.CloudProviderLibvirt:
+		c, err := libvirt.NewLibvirtCloud(&cluster.Spec)
+		if err != nil {
+			return nil, err
+		}
+		cloud = c
 
 	default:
 		return nil, fmt.Errorf("unknown CloudProvider %q", cluster.Spec.CloudProvider)

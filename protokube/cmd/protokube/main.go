@@ -20,19 +20,20 @@ import (
 	"bytes"
 	"flag"
 	"fmt"
+	"io"
+	"net"
+	"os"
+	"path"
+	"strings"
+
 	"github.com/golang/glog"
 	"github.com/spf13/pflag"
-	"io"
 	"k8s.io/kops/dns-controller/pkg/dns"
 	"k8s.io/kops/protokube/pkg/gossip"
 	gossipdns "k8s.io/kops/protokube/pkg/gossip/dns"
 	"k8s.io/kops/protokube/pkg/gossip/mesh"
 	"k8s.io/kops/protokube/pkg/protokube"
 	"k8s.io/kubernetes/federation/pkg/dnsprovider"
-	"net"
-	"os"
-	"path"
-	"strings"
 
 	// Load DNS plugins
 	_ "k8s.io/kubernetes/federation/pkg/dnsprovider/providers/aws/route53"
@@ -153,7 +154,8 @@ func run() error {
 		if internalIP == nil {
 			internalIP = vsphereVolumes.InternalIp()
 		}
-
+	} else if cloud == "libvirt" {
+		//TODO(bcrusu)
 	} else {
 		glog.Errorf("Unknown cloud %q", cloud)
 		os.Exit(1)

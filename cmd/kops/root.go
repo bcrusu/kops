@@ -60,7 +60,7 @@ var (
 
 	kops helps you create, destroy, upgrade and maintain production-grade, highly available,
 	Kubernetes clusters from the command line.  AWS (Amazon Web Services) is currently
-	officially supported, with GCE and VMware vSphere in alpha support.
+	officially supported, with GCE, VMware vSphere and libvirt in alpha support.
 	`))
 
 	root_short = i18n.T(`kops is Kubernetes ops.`)
