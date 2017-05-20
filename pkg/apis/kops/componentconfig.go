@@ -706,9 +706,6 @@ type CloudConfiguration struct {
 	// libvirt cloud-config specs
 	LibvirtURI              *string `json:"libvirtUri,omitempty"`
 	LibvirtStoragePool      *string `json:"libvirtStoragePool,omitempty"`
-	LibvirtVolFormat        *string `json:"libvirtVolFormat,omitempty"`
-	LibvirtVolCapacity      *string `json:"libvirtVolCapacity,omitempty"`
-	LibvirtVolAllocation    *string `json:"libvirtVolAllocation,omitempty"`
 	LibvirtBackingVolPath   *string `json:"libvirtBackingVolPath,omitempty"`
 	LibvirtBackingVolFormat *string `json:"libvirtBackingVolFormat,omitempty"`
 	LibvirtCoreDNSServer    *string `json:"libvirtCoreDNSServer,omitempty"`

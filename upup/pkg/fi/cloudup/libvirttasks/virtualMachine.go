@@ -17,7 +17,7 @@ var _ fi.CompareWithID = &VirtualMachine{}
 var _ fi.HasName = &VirtualMachine{}
 
 // GetName returns the Name of the object, implementing fi.HasName
-func (o *VirtualMachine) GetName() *string {
+func (vm *VirtualMachine) GetName() *string {
 	return o.Name
 }
 

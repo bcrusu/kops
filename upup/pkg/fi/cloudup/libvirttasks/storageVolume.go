@@ -18,7 +18,7 @@ package libvirttasks
 
 import (
 	"k8s.io/kops/upup/pkg/fi"
-	"k8s.io/kops/upup/pkg/fi/cloudup/gce"
+	"k8s.io/kops/upup/pkg/fi/cloudup/libvirt"
 )
 
 //TODO(bcrusu):
@@ -48,6 +48,6 @@ func (_ *StorageVolume) CheckChanges(a, e, changes *StorageVolume) error {
 	return nil
 }
 
-func (_ *StorageVolume) RenderLibvirt(t *gce.GCEAPITarget, a, e, changes *StorageVolume) error {
+func (_ *StorageVolume) RenderLibvirt(t *libvirt.LibvirtAPITarget, a, e, changes *StorageVolume) error {
 	return nil
 }

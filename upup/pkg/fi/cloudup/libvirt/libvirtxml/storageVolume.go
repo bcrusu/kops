@@ -1,14 +1,12 @@
 package libvirtxml
 
-import "github.com/pkg/errors"
-
 type StorageVolume struct {
-	doc  Document
+	doc  *Document
 	root *Node
 }
 
 func NewStorageVolume() StorageVolume {
-	doc := Document{}
+	doc := &Document{}
 	doc.Root = NewNode(nameForLocal("volume"))
 
 	return StorageVolume{
@@ -18,9 +16,9 @@ func NewStorageVolume() StorageVolume {
 }
 
 func NewStorageVolumeForXML(xmlDoc string) (StorageVolume, error) {
-	doc := Document{}
+	doc := &Document{}
 	if err := doc.Unmarshal(xmlDoc); err != nil {
-		return StorageVolume{}, errors.Wrap(err, "failed to unmarshal storage volume XML document")
+		return StorageVolume{}, err
 	}
 
 	if doc.Root == nil {
@@ -28,7 +26,8 @@ func NewStorageVolumeForXML(xmlDoc string) (StorageVolume, error) {
 	}
 
 	return StorageVolume{
-		doc: doc,
+		doc:  doc,
+		root: doc.Root,
 	}, nil
 }
 
@@ -45,13 +44,19 @@ func (s StorageVolume) SetType(value string) {
 }
 
 func (s StorageVolume) Name() string {
-	node := s.root.ensureNode(nameForLocal("name"))
-	return node.CharData
+	return s.root.ensureNode(nameForLocal("name")).CharData
 }
 
 func (s StorageVolume) SetName(value string) {
-	node := s.root.ensureNode(nameForLocal("name"))
-	node.CharData = value
+	s.root.ensureNode(nameForLocal("name")).CharData = value
+}
+
+func (s StorageVolume) Key() string {
+	return s.root.ensureNode(nameForLocal("key")).CharData
+}
+
+func (s StorageVolume) SetKey(value string) {
+	s.root.ensureNode(nameForLocal("key")).CharData = value
 }
 
 func (s StorageVolume) Capacity() StorageVolumeSize {

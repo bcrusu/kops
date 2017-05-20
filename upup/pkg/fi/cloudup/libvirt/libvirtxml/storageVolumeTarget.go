@@ -11,11 +11,15 @@ func newStorageVolumeTarget(node *Node) StorageVolumeTarget {
 }
 
 func (s StorageVolumeTarget) Path() string {
-	return s.node.getAttribute(nameForLocal("path"))
+	return s.node.ensureNode(nameForLocal("path")).CharData
 }
 
 func (s StorageVolumeTarget) SetPath(value string) {
-	s.node.setAttribute(nameForLocal("path"), value)
+	s.node.ensureNode(nameForLocal("path")).CharData = value
+}
+
+func (s StorageVolumeTarget) RemoveTimestamps() {
+	s.node.removeNodes(nameForLocal("timestamps"))
 }
 
 func (s StorageVolumeTarget) Format() StorageVolumeTargetFormat {

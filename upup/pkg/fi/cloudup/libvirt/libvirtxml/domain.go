@@ -1,16 +1,14 @@
 package libvirtxml
 
-import "github.com/pkg/errors"
-
 type Domain struct {
-	doc  Document
+	doc  *Document
 	root *Node
 }
 
 func NewDomainForXML(xmlDoc string) (Domain, error) {
-	doc := Document{}
+	doc := &Document{}
 	if err := doc.Unmarshal(xmlDoc); err != nil {
-		return Domain{}, errors.Wrap(err, "failed to unmarshal domain XML document")
+		return Domain{}, err
 	}
 
 	if doc.Root == nil {

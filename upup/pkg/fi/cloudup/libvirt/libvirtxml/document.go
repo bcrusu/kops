@@ -15,7 +15,7 @@ type Document struct {
 	Comments string
 }
 
-func (d Document) Unmarshal(xmlDoc string) error {
+func (d *Document) Unmarshal(xmlDoc string) error {
 	reader := strings.NewReader(xmlDoc)
 	decoder := xml.NewDecoder(reader)
 
@@ -40,7 +40,7 @@ func (d Document) Unmarshal(xmlDoc string) error {
 	return nil
 }
 
-func (d Document) Marshal() (string, error) {
+func (d *Document) Marshal() (string, error) {
 	var buffer bytes.Buffer
 
 	encoder := xml.NewEncoder(&buffer)
@@ -123,7 +123,8 @@ func decodeNode(decoder *xml.Decoder, element xml.StartElement) (*Node, error) {
 
 	for i, attr := range element.Attr {
 		attributes[i] = &Attribute{
-			Name: nameForXMLName(attr.Name),
+			Name:  nameForXMLName(attr.Name),
+			Value: attr.Value,
 		}
 	}
 

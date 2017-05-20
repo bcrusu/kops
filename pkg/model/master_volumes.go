@@ -34,7 +34,7 @@ const (
 	DefaultEtcdVolumeSize        = 20
 	DefaultAWSEtcdVolumeType     = "gp2"
 	DefaultGCEEtcdVolumeType     = "pd-ssd"
-	DefaultLibvirtEtcdVolumeType = "qcow"
+	DefaultLibvirtEtcdVolumeType = "qcow2"
 )
 
 // MasterVolumeBuilder builds master EBS volumes
