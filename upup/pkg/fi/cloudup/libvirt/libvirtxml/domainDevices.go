@@ -10,6 +10,14 @@ func newDomainDevices(node *Node) DomainDevices {
 	}
 }
 
+func (s DomainDevices) Emulator() string {
+	return s.node.ensureNode(nameForLocal("emulator")).CharData
+}
+
+func (s DomainDevices) SetEmulator(value string) {
+	s.node.ensureNode(nameForLocal("emulator")).CharData = value
+}
+
 func (s DomainDevices) Disks() []DomainDisk {
 	var result []DomainDisk
 

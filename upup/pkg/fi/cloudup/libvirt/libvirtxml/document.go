@@ -146,14 +146,17 @@ func decodeNode(decoder *xml.Decoder, element xml.StartElement) (*Node, error) {
 func encodeNode(encoder *xml.Encoder, node *Node) error {
 	startElement := xml.StartElement{
 		Name: node.Name.toXMLName(),
-		Attr: make([]xml.Attr, len(node.Attributes), len(node.Attributes)),
 	}
 
-	for i, attribute := range node.Attributes {
-		startElement.Attr[i] = xml.Attr{
+	for _, attribute := range node.Attributes {
+		if attribute.Value == "" {
+			continue
+		}
+
+		startElement.Attr = append(startElement.Attr, xml.Attr{
 			Name:  attribute.Name.toXMLName(),
 			Value: attribute.Value,
-		}
+		})
 	}
 
 	if err := encoder.EncodeToken(startElement); err != nil {

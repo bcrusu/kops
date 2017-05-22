@@ -16,8 +16,12 @@ func newDomainGraphic(node *Node) DomainGraphic {
 	}
 }
 
-func (s DomainDisk) Port() int {
+func (s DomainGraphic) Port() int {
 	str := s.node.getAttribute(nameForLocal("port"))
+	if str == "" {
+		return -1
+	}
+
 	port, err := strconv.Atoi(str)
 	if err != nil {
 		port = 0
@@ -26,7 +30,7 @@ func (s DomainDisk) Port() int {
 	return port
 }
 
-func (s DomainDisk) SetPort(value int) {
+func (s DomainGraphic) SetPort(value int) {
 	str := strconv.FormatInt(int64(value), 10)
-	s.node.setAttribute(nameForLocal("type"), str)
+	s.node.setAttribute(nameForLocal("port"), str)
 }
