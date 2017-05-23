@@ -99,6 +99,9 @@ type CreateClusterOptions struct {
 	MasterTenancy string
 	NodeTenancy   string
 
+	// Specify API loadbalancer as public or internal
+	APILoadBalancerType string
+
 	// vSphere options
 	VSphereServer        string
 	VSphereDatacenter    string
@@ -240,9 +243,9 @@ func NewCmdCreateCluster(f *util.Factory, out io.Writer) *cobra.Command {
 	cmd.Flags().Int32Var(&options.NodeCount, "node-count", options.NodeCount, "Set the number of nodes")
 	cmd.Flags().BoolVar(&options.EncryptEtcdStorage, "encrypt-etcd-storage", options.EncryptEtcdStorage, "Generate key in aws kms and use it for encrypt etcd volumes")
 
-	cmd.Flags().StringVar(&options.Image, "image", options.Image, "Image to use")
+	cmd.Flags().StringVar(&options.Image, "image", options.Image, "Image to use for all instances.")
 
-	cmd.Flags().StringVar(&options.Networking, "networking", "kubenet", "Networking mode to use.  kubenet (default), classic, external, kopeio-vxlan, weave, flannel, calico, canal.")
+	cmd.Flags().StringVar(&options.Networking, "networking", "kubenet", "Networking mode to use.  kubenet (default), classic, external, kopeio-vxlan (or kopeio), weave, flannel, calico, canal.")
 
 	cmd.Flags().StringVar(&options.DNSZone, "dns-zone", options.DNSZone, "DNS hosted zone to use (defaults to longest matching zone)")
 	cmd.Flags().StringVar(&options.OutDir, "out", options.OutDir, "Path to write any local output")
@@ -274,6 +277,8 @@ func NewCmdCreateCluster(f *util.Factory, out io.Writer) *cobra.Command {
 	// Master and Node Tenancy
 	cmd.Flags().StringVar(&options.MasterTenancy, "master-tenancy", options.MasterTenancy, "The tenancy of the master group on AWS. Can either be default or dedicated.")
 	cmd.Flags().StringVar(&options.NodeTenancy, "node-tenancy", options.NodeTenancy, "The tenancy of the node group on AWS. Can be either default or dedicated.")
+
+	cmd.Flags().StringVar(&options.APILoadBalancerType, "api-loadbalancer-type", options.APILoadBalancerType, "Sets the API loadbalancer type to either 'public' or 'internal'")
 
 	if featureflag.VSphereCloudProvider.Enabled() {
 		// vSphere flags
@@ -372,7 +377,7 @@ func RunCreateCluster(f *util.Factory, out io.Writer, c *CreateClusterOptions) e
 		cluster.Spec.Networking.External = &api.ExternalNetworkingSpec{}
 	case "cni":
 		cluster.Spec.Networking.CNI = &api.CNINetworkingSpec{}
-	case "kopeio-vxlan":
+	case "kopeio-vxlan", "kopeio":
 		cluster.Spec.Networking.Kopeio = &api.KopeioNetworkingSpec{}
 	case "weave":
 		cluster.Spec.Networking.Weave = &api.WeaveNetworkingSpec{}
@@ -436,6 +441,7 @@ func RunCreateCluster(f *util.Factory, out io.Writer, c *CreateClusterOptions) e
 	// We then round-robin around the zones
 	if len(masters) == 0 {
 		var masterSubnets []*api.ClusterSubnetSpec
+		masterCount := c.MasterCount
 		if len(c.MasterZones) != 0 {
 			for _, subnetName := range c.MasterZones {
 				subnet := findSubnet(cluster, subnetName)
@@ -449,20 +455,25 @@ func RunCreateCluster(f *util.Factory, out io.Writer, c *CreateClusterOptions) e
 			if c.MasterCount != 0 && c.MasterCount < int32(len(masterSubnets)) {
 				return fmt.Errorf("specified %d master zones, but also requested %d masters.  If specifying both, the count should match.", len(masterSubnets), c.MasterCount)
 			}
+
+			if masterCount == 0 {
+				// If master count is not specified, default to the number of master zones
+				masterCount = int32(len(c.MasterZones))
+			}
 		} else {
 			for i := range cluster.Spec.Subnets {
 				masterSubnets = append(masterSubnets, &cluster.Spec.Subnets[i])
+			}
+
+			if masterCount == 0 {
+				// If master count is not specified, default to 1
+				masterCount = 1
 			}
 		}
 
 		if len(masterSubnets) == 0 {
 			// Should be unreachable
 			return fmt.Errorf("cannot determine master subnets")
-		}
-
-		masterCount := c.MasterCount
-		if masterCount == 0 {
-			masterCount = int32(len(masterSubnets))
 		}
 
 		for i := 0; i < int(masterCount); i++ {
@@ -732,7 +743,7 @@ func RunCreateCluster(f *util.Factory, out io.Writer, c *CreateClusterOptions) e
 
 	case api.TopologyPrivate:
 		if !supportsPrivateTopology(cluster.Spec.Networking) {
-			return fmt.Errorf("Invalid networking option %s. Currently only '--networking kopeio-vxlan', '--networking weave', '--networking flannel', '--networking calico', '--networking canal' are supported for private topologies", c.Networking)
+			return fmt.Errorf("Invalid networking option %s. Currently only '--networking kopeio-vxlan (or kopeio)', '--networking weave', '--networking flannel', '--networking calico', '--networking canal' are supported for private topologies", c.Networking)
 		}
 		cluster.Spec.Topology = &api.TopologySpec{
 			Masters: api.TopologyPrivate,
@@ -802,19 +813,30 @@ func RunCreateCluster(f *util.Factory, out io.Writer, c *CreateClusterOptions) e
 		cluster.Spec.API = &api.AccessSpec{}
 	}
 	if cluster.Spec.API.IsEmpty() {
-		switch cluster.Spec.Topology.Masters {
-		case api.TopologyPublic:
-			cluster.Spec.API.DNS = &api.DNSAccessSpec{}
-
-		case api.TopologyPrivate:
+		if c.APILoadBalancerType != "" {
 			cluster.Spec.API.LoadBalancer = &api.LoadBalancerAccessSpec{}
+		} else {
+			switch cluster.Spec.Topology.Masters {
+			case api.TopologyPublic:
+				cluster.Spec.API.DNS = &api.DNSAccessSpec{}
 
-		default:
-			return fmt.Errorf("unknown master topology type: %q", cluster.Spec.Topology.Masters)
+			case api.TopologyPrivate:
+				cluster.Spec.API.LoadBalancer = &api.LoadBalancerAccessSpec{}
+
+			default:
+				return fmt.Errorf("unknown master topology type: %q", cluster.Spec.Topology.Masters)
+			}
 		}
 	}
 	if cluster.Spec.API.LoadBalancer != nil && cluster.Spec.API.LoadBalancer.Type == "" {
-		cluster.Spec.API.LoadBalancer.Type = api.LoadBalancerTypePublic
+		switch c.APILoadBalancerType {
+		case "", "public":
+			cluster.Spec.API.LoadBalancer.Type = api.LoadBalancerTypePublic
+		case "internal":
+			cluster.Spec.API.LoadBalancer.Type = api.LoadBalancerTypeInternal
+		default:
+			return fmt.Errorf("unknown api-loadbalancer-type: %q", c.APILoadBalancerType)
+		}
 	}
 
 	sshPublicKeys := make(map[string][]byte)
