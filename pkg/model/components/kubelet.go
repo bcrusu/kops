@@ -169,7 +169,7 @@ func (b *KubeletOptionsBuilder) BuildOptions(o interface{}) error {
 	}
 
 	if cloudProvider == fi.CloudProviderLibvirt {
-		clusterSpec.Kubelet.CloudProvider = ""
+		clusterSpec.Kubelet.CloudProvider = "libvirt"
 	}
 
 	usesKubenet, err := UsesKubenet(clusterSpec)

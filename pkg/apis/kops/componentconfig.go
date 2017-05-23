@@ -704,9 +704,7 @@ type CloudConfiguration struct {
 	VSphereCoreDNSServer *string `json:"vSphereCoreDNSServer,omitempty"`
 
 	// libvirt cloud-config specs
-	LibvirtURI              *string `json:"libvirtUri,omitempty"`
-	LibvirtStoragePool      *string `json:"libvirtStoragePool,omitempty"`
-	LibvirtBackingVolPath   *string `json:"libvirtBackingVolPath,omitempty"`
-	LibvirtBackingVolFormat *string `json:"libvirtBackingVolFormat,omitempty"`
-	LibvirtCoreDNSServer    *string `json:"libvirtCoreDNSServer,omitempty"`
+	LibvirtURI           *string `json:"libvirtUri,omitempty"`
+	LibvirtStoragePool   *string `json:"libvirtStoragePool,omitempty"`
+	LibvirtCoreDNSServer *string `json:"libvirtCoreDNSServer,omitempty"`
 }

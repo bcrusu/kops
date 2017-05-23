@@ -628,11 +628,13 @@ func (c *ApplyClusterCmd) Run() error {
 		}
 	case fi.CloudProviderLibvirt:
 		{
-			l.Builders = append(l.Builders, &libvirtmodel.AutoscalingGroupModelBuilder{
-				LibvirtModelContext: &libvirtmodel.LibvirtModelContext{
-					KopsModelContext: modelContext,
-				},
-				BootstrapScript: bootstrapScriptBuilder,
+			context := &libvirtmodel.LibvirtModelContext{
+				KopsModelContext: modelContext,
+			}
+
+			l.Builders = append(l.Builders, &libvirtmodel.DomainsModelBuilder{
+				LibvirtModelContext: context,
+				BootstrapScript:     bootstrapScriptBuilder,
 			})
 		}
 

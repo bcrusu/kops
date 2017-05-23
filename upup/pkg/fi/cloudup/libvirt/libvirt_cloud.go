@@ -36,6 +36,7 @@ func NewLibvirtCloud(spec *kops.ClusterSpec) (*LibvirtCloud, error) {
 	if err != nil {
 		return nil, err
 	}
+	//TODO(bcrusu): close the connection
 
 	result := &LibvirtCloud{
 		URI:           uri,
